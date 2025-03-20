@@ -81,10 +81,11 @@ The server will start listening on port 50051 and create 100 files (file_0 to fi
 3. Run a Client
 ```
 make run-client PORT=50051
+```
       
              or 
 
-
+```
 go run cmd/client/main.go -port 8080 1 "This is client 1's message"
 ```
 
