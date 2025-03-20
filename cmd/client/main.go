@@ -1,33 +1,40 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
 	"Distributed-Lock-Manager/internal/client"
 )
 
 func main() {
+	// Define command-line flag for port
+	port := flag.Int("port", 50051, "The server port")
+	flag.Parse()
+
 	// Default values
 	clientID := int32(1)
 	message := "Hello, World!"
 
-	// Parse command-line arguments if provided
-	if len(os.Args) > 1 {
-		id, err := strconv.Atoi(os.Args[1])
+	// Parse remaining command-line arguments if provided
+	args := flag.Args()
+	if len(args) > 0 {
+		id, err := strconv.Atoi(args[0])
 		if err == nil {
 			clientID = int32(id)
 		}
 	}
-
-	if len(os.Args) > 2 {
-		message = os.Args[2]
+	if len(args) > 1 {
+		message = args[1]
 	}
 
-	// Create a new client with the specified ID
-	c, err := client.NewLockClient("localhost:50051", clientID)
+	// Create server address using the port
+	serverAddr := fmt.Sprintf("localhost:%d", *port)
+
+	// Create a new client with the specified ID and server address
+	c, err := client.NewLockClient(serverAddr, clientID)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
