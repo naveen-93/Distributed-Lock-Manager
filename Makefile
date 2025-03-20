@@ -1,5 +1,4 @@
 # Makefile for Distributed Lock Manager
-
 # Go parameters
 GOCMD=go
 GOBUILD=$(GOCMD) build
@@ -58,15 +57,30 @@ run-multi-clients:
 # Test correctness with multiple clients writing to the same file
 test-correctness:
 	@echo "Testing correctness with multiple clients..."
-	@rm -f data/file_0
-	@touch data/file_0
+	@# Create file if it doesn't exist, but don't remove existing content
+	@mkdir -p $(DATA_DIR)
+	@touch $(DATA_DIR)/file_0
+	@echo "Starting correctness test (appending to existing file)..."
 	@for i in 1 2 3 4 5; do \
 		$(GORUN) cmd/client/main.go $$i "Client $$i writing" & \
 	done
 	@echo "Waiting for clients to complete..."
 	@sleep 5
 	@echo "Contents of file_0:"
-	@cat data/file_0
+	@cat $(DATA_DIR)/file_0
+
+# Alternative test that starts with a clean file
+test-correctness-clean:
+	@echo "Testing correctness with multiple clients (clean start)..."
+	@rm -f $(DATA_DIR)/file_0
+	@touch $(DATA_DIR)/file_0
+	@for i in 1 2 3 4 5; do \
+		$(GORUN) cmd/client/main.go $$i "Client $$i writing" & \
+	done
+	@echo "Waiting for clients to complete..."
+	@sleep 5
+	@echo "Contents of file_0:"
+	@cat $(DATA_DIR)/file_0
 
 # Clean up
 clean-bin:
@@ -94,16 +108,17 @@ proto:
 # Help
 help:
 	@echo "Available commands:"
-	@echo "  make all               - Clean, setup directories, and build binaries"
-	@echo "  make build             - Build server and client binaries"
-	@echo "  make run-server        - Run the server from binary"
-	@echo "  make run-client        - Run the client from binary"
-	@echo "  make run-multi-clients - Run multiple clients concurrently"
-	@echo "  make test-correctness  - Test lock correctness with multiple clients"
-	@echo "  make clean-bin         - Remove binaries"
-	@echo "  make clean-data        - Remove data files"
-	@echo "  make clean             - Remove binaries and data files"
-	@echo "  make deps              - Install dependencies"
-	@echo "  make proto             - Generate protobuf code"
+	@echo " make all - Clean, setup directories, and build binaries"
+	@echo " make build - Build server and client binaries"
+	@echo " make run-server - Run the server from binary"
+	@echo " make run-client - Run the client from binary"
+	@echo " make run-multi-clients - Run multiple clients concurrently"
+	@echo " make test-correctness - Test lock correctness with multiple clients (append to existing file)"
+	@echo " make test-correctness-clean - Test lock correctness with multiple clients (clean start)"
+	@echo " make clean-bin - Remove binaries"
+	@echo " make clean-data - Remove data files"
+	@echo " make clean - Remove binaries and data files"
+	@echo " make deps - Install dependencies"
+	@echo " make proto - Generate protobuf code"
 
-.PHONY: all setup build build-server build-client run-server run-client run-multi-clients test-correctness clean-bin clean-data clean deps proto help
+.PHONY: all setup build build-server build-client run-server run-client run-multi-clients test-correctness test-correctness-clean clean-bin clean-data clean deps proto help
